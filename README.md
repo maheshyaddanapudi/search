@@ -57,6 +57,10 @@ The idea is to build a single production grade Spring Boot Jar with the followin
 
             • Logbook - for logging all http requests and responses.
 
+## Code coverage
+
+CodeQL: ![CodeQL](https://github.com/maheshyaddanapudi/searcher/workflows/CodeQL/badge.svg?branch=main)
+
 ## Code quality
 
 SonarQube: [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=maheshyaddanapudi_searcher&metric=alert_status)](https://sonarcloud.io/dashboard?id=maheshyaddanapudi_searcher)
@@ -66,7 +70,7 @@ SonarQube: [![Quality Gate Status](https://sonarcloud.io/api/project_badges/meas
 		cd <to project root folder>
 		mvn clean install
 		
-	The maven build should place the searcher-${serchear.version}.jar inside the target folder.
+	The maven build should place the searcher-${searcher.version}.jar inside the target folder.
 
 ## Build CI (Continuous Integration)
 

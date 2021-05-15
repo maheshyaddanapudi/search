@@ -62,14 +62,12 @@ public class RecordDataService {
 			newRecordData.setTags(request.getTags());
 			newRecordData.setFav(request.getFav());
 			
-			recordDataRepo.saveAndFlush(newRecordData);
-			
-			if(DATA_UPDATE_TRIGGER_CACHE_CLEARANCE) {
-				cacheManager.getCache(Constants.CACHE_NAME).clear();
-			}
+			RecordData recordData = recordDataRepo.saveAndFlush(newRecordData);
 			
 			if(DATA_UPDATE_TRIGGER_ELASTICSEARCH_SYNC) {
-				elasticSynchronizer.sync();
+				RecordIndexedData recordIndexedData = recordDataMapper.toSportsWatcherIndexedData(recordData);
+				recordIndexedData = recordndexedDataRepo.save(recordIndexedData);
+				//elasticSynchronizer.sync();
 			}
 			
 			response.setStatus(true);

@@ -1,0 +1,72 @@
+spring:
+  application:
+    name: Searcher
+  h2:
+    console:
+      enabled: false
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:searcher}?createDatabaseIfNotExist=true&autoReconnect=true&verifyServerCertificate=false&useSSL=false&allowPublicKeyRetrieval=true&useMysqlMetadata=true
+    username: ${MYSQL_USERNAME:searcher}
+    password: ${MYSQL_PASSWORD:searcher}
+    hikari:
+      initial-size: 10
+      max-idle: 1000
+  jpa:
+    hibernate:
+      ddl-auto: none
+  data:
+    elasticsearch:
+      cluster-name: ${ELASTICSEARCH_CLUSTER_NAME:searcher}
+      cluster-nodes: ${ELASTICSEARCH_HOST:localhost}:${ELASTICSEARCH_PORT:9200}
+      repositories:
+        enabled: true
+
+server:
+  port: 1987
+
+startup:
+  elasticsearch:
+    sync:
+      enabled: true
+
+data:
+  update:
+    trigger:
+      cache:
+        clearance: true
+      elasticsearch:
+        sync: true
+
+awaitTermination: 60
+
+loadSample: true
+
+api:
+  elasticsearch:
+    uri: http://${ELASTICSEARCH_HOST:localhost}:${ELASTICSEARCH_PORT:9200}
+    search: _search
+
+hazelcast:
+  health:
+    monitoring:
+      level: OFF
+
+logging:
+  level:
+    root: INFO
+    org.zalando.logbook: TRACE
+    com.hazelcast.internal.diagnostics.HealthMonitor: off
+  pattern:
+    console: '[%p ] %d{yyyy-MM-dd HH:mm:ss,SSS} %class{36}.%M - %m%n'
+
+logbook:
+  filter:
+    enabled: true
+  write:
+    level: INFO
+  format:
+    style: splunk
+  exclude: [/, /actuator/**, /v3/api-docs/**, /swagger-ui/**, /index.html, /images/**, /swagger-ui.js, /lib/**, /css/**]
+  strategy: body-only-if-status-at-least
+  minimum-status: 400

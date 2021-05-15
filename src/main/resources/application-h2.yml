@@ -1,0 +1,75 @@
+spring:
+  application:
+    name: Searcher
+  h2:
+    console:
+      enabled: true
+  datasource:
+    url: jdbc:h2:mem:searcherdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=MYSQL
+    username: searcher
+    password: searcher
+    platform: h2
+    continue-on-error: true
+    driver-class-name: org.h2.Driver
+    hikari:
+      initial-size: 10
+      max-idle: 1000
+  jpa:
+    database-platform: org.hibernate.dialect.MySQL5Dialect
+    hibernate:
+      ddl-auto: none
+  data:
+    elasticsearch:
+      cluster-name: ${ELASTICSEARCH_CLUSTER_NAME:searcher}
+      cluster-nodes: ${ELASTICSEARCH_HOST:localhost}:${ELASTICSEARCH_PORT:9300}
+      repositories:
+        enabled: true
+
+server:
+  port: 1987
+
+startup:
+  elasticsearch:
+    sync:
+      enabled: true
+
+awaitTermination: 30
+
+loadSample: true
+
+data:
+  update:
+    trigger:
+      cache:
+        clearance: true
+      elasticsearch:
+        sync: true
+
+api:
+  elasticsearch:
+    uri: http://${ELASTICSEARCH_HOST:localhost}:${ELASTICSEARCH_PORT:900}
+    search: _search
+
+hazelcast:
+  health:
+    monitoring:
+      level: OFF
+
+logging:
+  level:
+    root: INFO
+    org.zalando.logbook: TRACE
+    com.hazelcast.internal.diagnostics.HealthMonitor: off
+  pattern:
+    console: '[%p ] %d{yyyy-MM-dd HH:mm:ss,SSS} %class{36}.%M - %m%n'
+
+logbook:
+  filter:
+    enabled: true
+  write:
+    level: INFO
+  format:
+    style: splunk
+  exclude: [/, /actuator/**, /v3/api-docs/**, /swagger-ui/**, /index.html, /images/**, /swagger-ui.js, /lib/**, /css/**]
+  strategy: body-only-if-status-at-least
+  minimum-status: 400

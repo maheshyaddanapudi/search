@@ -1,0 +1,93 @@
+version: '2.2'
+
+services:
+
+  elasticsearch:
+    image: elasticsearch:7.9.3
+    restart: on-failure
+    networks:
+      searcher-nw:
+        aliases:
+          - elasticsearch
+    ports:
+      - 9200:9200
+      - 9300:9300
+    healthcheck:
+      test: ["CMD", "curl","-I" ,"-XGET", "http://localhost:9200/_cat/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+    volumes:
+      - es_data:/usr/share/elasticsearch/data:rw
+    mem_limit: "1536000000"
+
+  mysql:
+    image: mysql:5.7
+    restart: on-failure
+    networks:
+      searcher-nw:
+        aliases:
+          - mysql
+    ports:
+      - 3306:3306
+      - 33060:33060
+    environment:
+      MYSQL_ROOT_PASSWORD: Root@1234
+      MYSQL_DATABASE: searcher
+      MYSQL_USER: searcher
+      MYSQL_PASSWORD: searcher
+      MYSQL_INITDB_SKIP_TZINFO: NONE
+      LOGSPOUT: ignore
+    healthcheck:
+      test: [ "CMD-SHELL", 'mysqladmin ping -u root -pRoot@1234' ]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+    mem_limit: "512000000"
+    volumes:
+      - mysql_data:/var/lib/mysql
+  searcher:
+    image: searcher:latest
+    build:
+      context: .
+    restart: on-failure
+    depends_on:
+      mysql:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      searcher-nw:
+        aliases:
+          - searcher
+    ports:
+      - 1987:1987
+    environment:
+      MYSQL_DATABASE_HOST: mysql
+      MYSQL_DATABASE_PORT: 3306
+      MYSQL_DATABASE: searcher
+      MYSQL_USERNAME: searcher
+      MYSQL_PASSWORD: searcher
+      ELASTICSEARCH_CLUSTER_NODES: elasticsearch:9200
+      SPRING_PROFILES_ACTIVE: mysql
+    healthcheck:
+      test: ["CMD", "curl","-I" ,"-XGET", "http://localhost:1987/actuator/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+
+volumes:
+  es_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: $PWD/container/persistence/elasticsearch
+      o: bind
+  mysql_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: $PWD/container/persistence/mysql
+      o: bind
+networks:
+  searcher-nw:
